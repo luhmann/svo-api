@@ -28,15 +28,16 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
 // Use the service object
-app.use(`${prefix}/recipe/:slug`, recipeService)
+app.use(`${prefix}/recipe`, recipeService)
 
-// app
-//   .service(`${prefix}/recipe/:slug`)
-//   .before({
-//     create (hook, next) {
-//       hook.data.createdAt = new Date()
-//     }
-//   })
+app
+  .service(`${prefix}/recipe`)
+  .before({
+    create: (hook, next) => {
+      hook.data.createdAt = new Date()
+      next()
+    }
+  })
 
 // Start the application on port 3030
 app.listen(3030)
