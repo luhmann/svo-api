@@ -4,10 +4,18 @@ import request from 'supertest'
 import test from 'tape'
 
 import { BASE_URL } from '../config/constants.js'
+import { dropTestDb, loadFixtures } from './setup.js'
+
+const before = () => {
+  dropTestDb()
+  loadFixtures()
+}
 
 const afterEach = () => {
   mongoose.disconnect()
 }
+
+before()
 
 test('SVO Api', t => {
   t.test('GET single recipe recipe/hungarian-goulash', t => {

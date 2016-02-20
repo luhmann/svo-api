@@ -9,7 +9,7 @@ import mongooseService from 'feathers-mongoose'
 import rest from 'feathers-rest'
 import uniqueSlug from 'unique-slug'
 
-import { BASE_URL } from './config/constants.js'
+import { BASE_URL, DB_URL } from './config/constants.js'
 import Recipe from './model/RecipeModel.js'
 
 const app = feathers()
@@ -18,7 +18,7 @@ const app = feathers()
 app.use(cors())
 
 mongoose.Promise = global.Promise
-mongoose.connect('mongodb://localhost:27017/svo', (err, connection) => {
+mongoose.connect(DB_URL, (err, connection) => {
   if (err) {
     throw err
   }
