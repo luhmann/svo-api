@@ -18,7 +18,7 @@ const afterEach = () => {
 before()
 
 test('SVO Api', t => {
-  t.test('GET single recipe recipe/hungarian-goulash', t => {
+  t.test('GET single recipe', t => {
     request(app)
       .get(`${BASE_URL}/recipe/hungarian-goulash`)
       .expect(200)
