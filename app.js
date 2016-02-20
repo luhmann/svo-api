@@ -9,10 +9,10 @@ import mongooseService from 'feathers-mongoose'
 import rest from 'feathers-rest'
 import uniqueSlug from 'unique-slug'
 
+import { BASE_URL } from './config/constants.js'
 import Recipe from './model/RecipeModel.js'
 
 const app = feathers()
-const prefix = 'api/v1'
 
 // enable cors
 app.use(cors())
@@ -34,7 +34,7 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
 // Use the service object
-app.use(`${prefix}/recipe`, mongooseService({
+app.use(`${BASE_URL}/recipe`, mongooseService({
   Model: Recipe
 }))
 
@@ -43,7 +43,7 @@ app.use((error, req, res, next) => {
 })
 
 app
-  .service(`${prefix}/recipe`)
+  .service(`${BASE_URL}/recipe`)
   .before({
     create (hook) {
       hook.data.hash = uniqueSlug(hook.data.slug)
@@ -68,7 +68,4 @@ app
     }
   })
 
-// Start the application on port 3030
-app.listen(3030, () => {
-  console.log('SVO API is now listening on port 3030')
-})
+export default app
