@@ -53,20 +53,20 @@ app
         return this.find({ hash: uniqueSlug(hook.id) })
           .then(data => {
             if (isArray(data) && data.length === 1 && data[0].slug === hook.id) {
-              let result = data[0].toObject({ versionKey: false })
-              delete result['_id']
-              hook.result = result
+              hook.result = data[0]
               return hook
             }
           })
       }
     }
   })
-  // .after({
-  //   get: (hook, next) => {
-  //     // console.log(hook.result)
-  //   }
-  // })
+  .after({
+    get (hook) {
+      let result = hook.result.toObject({ versionKey: false })
+      delete result['_id']
+      hook.result = result
+    }
+  })
 
 // Start the application on port 3030
 app.listen(3030, () => {
