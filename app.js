@@ -19,9 +19,11 @@ app.use(cors())
 
 mongoose.Promise = global.Promise
 mongoose.connect(DB_URL, (err, connection) => {
-  if (err) {
-    throw err
+  if (err && err.message.indexOf('ECONNREFUSED') > -1) {
+    console.log('Connection to DB refused did you start it?')
   }
+
+  console.log(err)
 })
 
 app.configure(hooks())
