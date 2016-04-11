@@ -3,14 +3,14 @@ import bodyParser from 'body-parser'
 import cors from 'cors'
 import feathers from 'feathers'
 import hooks from 'feathers-hooks'
-import { isArray } from 'lodash'
 import mongoose from 'mongoose'
 import mongooseService from 'feathers-mongoose'
 import rest from 'feathers-rest'
-import uniqueSlug from 'unique-slug'
 
 import { BASE_URL, DB_URL } from './config/constants.js'
 import Recipe from './model/RecipeModel.js'
+import { convertDates, getBySlug, validateSlug } from './config/hooks.js'
+import errorHandler from 'feathers-errors/handler.js'
 
 const app = feathers()
 
@@ -23,9 +23,12 @@ mongoose.connect(DB_URL, (err, connection) => {
     console.log('Connection to DB refused did you start it?')
   }
 
-  console.log(err)
+  if (err) {
+    console.log(err)
+  }
 })
 
+// Setup hooks
 app.configure(hooks())
 
 // Setup a rest interface
@@ -40,34 +43,18 @@ app.use(`${BASE_URL}/recipe`, mongooseService({
   Model: Recipe
 }))
 
-app.use((error, req, res, next) => {
-  res.json(error)
-})
+// setup error handler
+app.use(errorHandler())
 
 app
   .service(`${BASE_URL}/recipe`)
   .before({
-    create (hook) {
-      hook.data.hash = uniqueSlug(hook.data.slug)
-    },
-    get (hook) {
-      if (hook.id) {
-        return this.find({ hash: uniqueSlug(hook.id) })
-          .then(data => {
-            if (isArray(data) && data.length === 1 && data[0].slug === hook.id) {
-              hook.result = data[0]
-              return hook
-            }
-          })
-      }
-    }
+    create: [ validateSlug ],
+    get: [ getBySlug ]
   })
   .after({
-    get (hook) {
-      let result = hook.result.toObject({ versionKey: false })
-      delete result['_id']
-      hook.result = result
-    }
+    all: [ mongooseService.hooks.toObject({}), convertDates ],
+    get: [ hooks.remove('_id') ]
   })
 
 export default app

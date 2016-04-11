@@ -6,9 +6,9 @@ const RecipeSchema = new Schema({
   hash: { type: String, index: { unique: true } },
   title: { type: String, required: true },
   subtitle: { type: String },
-  created: { type: Date, 'default': Date.now },
-  modified: { type: Date, 'default': Date.now },
-  published: { type: Date, 'default': Date.now },
+  created: { type: Date, default: Date.now },
+  modified: { type: Date, default: Date.now },
+  published: { type: Date, default: Date.now },
   category: { type: String, required: true },
   author: Schema.Types.Mixed,
   duration: Schema.Types.Mixed,
@@ -28,6 +28,4 @@ const RecipeSchema = new Schema({
   dessert: String
 })
 
-const RecipeModel = mongoose.model('recipes', RecipeSchema)
-
-export default RecipeModel
+export default mongoose.model('recipes', RecipeSchema)

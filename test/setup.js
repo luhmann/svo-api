@@ -1,12 +1,12 @@
 import Recipe from '../model/RecipeModel.js'
 import goulashFixture from './fixtures/goulash.json'
 
-export const dropTestDb = () => {
+export const dropTestDb = (t) => {
   Recipe.remove((err, p) => {
     if (err) {
       throw err
     } else {
-      console.log(`No Of Documents deleted: ${p}`)
+      t.comment(`Before: No Of Documents deleted: ${p}`)
     }
   })
 }
