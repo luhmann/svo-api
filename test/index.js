@@ -33,7 +33,7 @@ test('SVO Api', t => {
 
     t.test('should return "method not allowed" for patch requests', t => {
       request(app)
-        .patch(`${BASE_URL}/recipe/foo`)
+        .patch(`${BASE_URL}/recipes/foo`)
         .expect('Content-Type', /json/)
         .expect(405)
         .end((err, res) => {
@@ -46,9 +46,9 @@ test('SVO Api', t => {
   t.test('GET', t => {
     before(t)
 
-    t.test('should retrieve single /recipe by slug', t => {
+    t.test('should retrieve single recipe by slug', t => {
       request(app)
-        .get(`${BASE_URL}/recipe/hungarian-goulash`)
+        .get(`${BASE_URL}/recipes/hungarian-goulash`)
         .expect('Content-Type', /json/)
         .expect(200)
         .end((err, res) => {
@@ -61,7 +61,7 @@ test('SVO Api', t => {
 
     t.test('should indicate non-existing recipe', t => {
       request(app)
-        .get(`${BASE_URL}/recipe/foo`)
+        .get(`${BASE_URL}/recipes/foo`)
         .expect('Content-Type', /json/)
         .expect(404)
         .end((err, res) => {
@@ -73,13 +73,14 @@ test('SVO Api', t => {
 
     t.test('find recipes by flat property', t => {
       request(app)
-        .get(`${BASE_URL}/recipe/?category=dinner`)
+        .get(`${BASE_URL}/recipes/?category=dinner`)
         .expect('Content-Type', /json/)
         .expect(200)
         .end((err, res) => {
           t.error(err, 'No error')
-          t.ok(isArray(res.body), 'Result is an array')
-          t.ok(res.body.length === 1, 'the returned result has the correct length')
+          t.ok(res.body.total === 1, 'has the correct number of results')
+          t.ok(isArray(res.body.data), 'Result is an array')
+          t.ok(res.body.data.length === 1, 'the returned result has the correct length')
           t.end()
         })
     })
@@ -89,8 +90,10 @@ test('SVO Api', t => {
     dropTestDb(t)
 
     t.test('should create new recipe with 201 CREATED', t => {
+      goulash.created = new Date('1995-12-17T03:24:00')
+
       request(app)
-        .post(`${BASE_URL}/recipe`)
+        .post(`${BASE_URL}/recipes`)
         .send(goulash)
         .expect('Content-Type', /json/)
         .expect(201)
@@ -98,7 +101,7 @@ test('SVO Api', t => {
           t.error(err, 'No error')
           t.ok(res.body._id, 'Id field exists')
           t.ok(res.body.hash === '3460f804', 'Hash has been inserted')
-          t.ok(res.body.created >= Date.now() - 1000, 'Created field was automatically generated with current datetime')
+          t.ok(res.body.created >= Date.now() - 1000, 'Created field was automatically set the provided value was ignored')
           t.ok(res.body.modified >= Date.now() - 1000, 'Modified field was automatically generated with current datetime')
           t.ok(res.body.published >= Date.now() - 1000, 'Published field was automatically generated with current datetime')
           t.ok(res.body.__v === 0, 'Version is zero')
@@ -108,7 +111,7 @@ test('SVO Api', t => {
 
     t.test('should fail creating recipe with an existing slug', t => {
       request(app)
-        .post(`${BASE_URL}/recipe`)
+        .post(`${BASE_URL}/recipes`)
         .send(goulash)
         .expect('Content-Type', /json/)
         .expect(409)
@@ -123,6 +126,7 @@ test('SVO Api', t => {
 
   t.test('PUT', t => {
     let id
+    let created
     let newTitle = 'Foo Bar'
 
     dropTestDb(t)
@@ -133,16 +137,17 @@ test('SVO Api', t => {
     goulash.modified = new Date('1995-12-17T03:24:00')
 
     request(app)
-      .post(`${BASE_URL}/recipe`)
+      .post(`${BASE_URL}/recipes`)
       .send(goulash)
       .end((err, res) => {
         t.error(err, 'No error')
         id = res.body._id
+        created = res.body.created
         let goulashClone = cloneDeep(res.body)
         goulashClone.title = newTitle
 
         request(app)
-          .put(`${BASE_URL}/recipe/${id}`)
+          .put(`${BASE_URL}/recipes/${id}`)
           .send(goulashClone)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -150,7 +155,7 @@ test('SVO Api', t => {
             t.error(err, 'No Error')
             t.ok(res.body.title === newTitle, 'Title successfully modified')
             t.ok(res.body.category === goulash.category, 'Category has not been modified')
-            t.ok(res.body.created === 819170640000, 'Created field has been left untouched')
+            t.ok(res.body.created === created, 'Created field has been left untouched')
             t.ok(res.body.modified >= Date.now() - 1000, 'Modified field was automatically updated with current datetime')
             t.ok(res.body.published === 819170640000, 'Published field has been left untouched')
             t.end()
@@ -163,14 +168,14 @@ test('SVO Api', t => {
     t.test('should delete a single recipe', t => {
       let id
       request(app)
-        .post(`${BASE_URL}/recipe`)
+        .post(`${BASE_URL}/recipes`)
         .send(goulash)
         .end((err, res) => {
           t.error(err, 'No error')
           id = res.body._id
 
           request(app)
-            .delete(`${BASE_URL}/recipe/${id}`)
+            .delete(`${BASE_URL}/recipes/${id}`)
             .expect('Content-Type', /json/)
             .expect(200)
             .end((err, res) => {

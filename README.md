@@ -2,9 +2,9 @@
 
 [![Build Status](https://travis-ci.org/luhmann/svo-api.svg?branch=master)](https://travis-ci.org/luhmann/svo-api)
 
-#### Insert Demo Data 
+#### Insert Demo Data
 ```json
-curl -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -H "Postman-Token: 88a5a253-9662-fe9d-1fca-2a553a9bef30" -d '{
+curl -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d '{
         "slug": "hungarian-goulash",
         "title": "Ungarisches Saft-Gulasch",
         "subtitle": "Ein leckerer Klassiker für die Massen, der Jung und Alt begeistert",
@@ -136,5 +136,5 @@ curl -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -H
         ],
         "wine": "Zum Gulasch reicht man traditionell einen schweren Rotwein wie z.B. einen Cabernet Sauvignon",
         "dessert": "Wer nach so viel herzhaftem Essen noch Lust auf was Süßes hat, reicht dazu unseren [Kaiserschmarren mit Limettensauce](/demo/foo)"
-    }' "http://localhost:3030/api/v1/recipe"
+    }' "http://localhost:3030/api/v1/recipes"
 ```

@@ -1,4 +1,4 @@
-import Recipe from '../model/Recipe'
+import Recipe from '../services/recipe/model'
 import goulashFixture from './fixtures/goulash.json'
 
 export const dropTestDb = (t) => {
