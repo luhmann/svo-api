@@ -8,6 +8,5 @@
       "secret": "FEATHERS_AUTH_SECRET"
     },
     "local": {},
-    "userEndpoint": "/api/v1/users"
   }
 }

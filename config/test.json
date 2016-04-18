@@ -6,6 +6,8 @@
     "token": {
       "secret": "EGnn73RhFrFqRrbJmsCotZP6I8p/2F8YSbWh3W4P8W92RRJofexTQeV9L/ofMlDMTcc/Z//hyhWhiyVUMxyFhA=="
     },
-    "local": {}
+    "local": {},
+    "userEndpoint": "/api/v1/users",
+    "header": "authorization"
   }
 }

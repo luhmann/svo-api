@@ -5,6 +5,9 @@ import uniqueSlug from 'unique-slug'
 import isArray from 'lodash/isArray'
 import hooks from 'feathers-hooks'
 import mongooseService from 'feathers-mongoose'
+import authentication from 'feathers-authentication'
+
+const auth = authentication.hooks
 
 function convertDatesToEpoch (hook) {
   if (!isArray(hook.result.data)) {
@@ -84,7 +87,12 @@ function removePermanentFields (hook) {
 
 export const before = {
   create: [ validateSlug, convertDatesFromEpoch, removePermanentFields ],
-  get: [ getBySlug ],
+  get: [
+    auth.verifyToken(),
+    auth.populateUser(),
+    auth.restrictToAuthenticated(),
+    getBySlug
+  ],
   update: [ convertDatesFromEpoch, updateModified ],
   patch: hooks.disable()
 }

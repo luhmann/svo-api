@@ -6,8 +6,14 @@ import isArray from 'lodash/isArray'
 import cloneDeep from 'lodash/cloneDeep'
 
 import { BASE_URL } from '../config/constants.js'
-import { dropTestDb, loadFixtures } from './setup.js'
+import { dropTestDb, loadFixtures, deleteTestUser } from './setup.js'
 import goulash from './fixtures/goulash.json'
+import userMock from './fixtures/user.json'
+
+let token
+let server
+
+const AUTH_HEADER_NAME = 'authorization'
 
 const before = (t) => {
   dropTestDb(t)
@@ -15,10 +21,41 @@ const before = (t) => {
 }
 
 const after = () => {
+  server.close()
   mongoose.disconnect()
 }
 
 test('SVO Api', t => {
+  t.test('Before', t => {
+    server = app.listen(3030, () => {
+      deleteTestUser(t)
+      before(t)
+      request(app)
+        .post(`${BASE_URL}/users`)
+        .send(userMock)
+        .expect(201)
+        .end((err, res) => {
+          if (err) {
+            t.fail('User could not be generated', err)
+            t.end()
+          } else {
+            request(app)
+              .post('/auth/local')
+              .send(userMock)
+              .end((err, res) => {
+                if (err) {
+                  t.fail('token could not be received', err)
+                } else {
+                  token = res.body.token
+                  t.comment(`Received token ${token}`)
+                }
+                t.end()
+              })
+          }
+        })
+    })
+  })
+
   t.test('General', t => {
     t.test('should indicate unknown routes', t => {
       request(app)
@@ -46,9 +83,12 @@ test('SVO Api', t => {
   t.test('GET', t => {
     before(t)
 
+    // TODO: test unauthenticated
+
     t.test('should retrieve single recipe by slug', t => {
       request(app)
         .get(`${BASE_URL}/recipes/hungarian-goulash`)
+        .set(AUTH_HEADER_NAME, token)
         .expect('Content-Type', /json/)
         .expect(200)
         .end((err, res) => {
@@ -62,6 +102,7 @@ test('SVO Api', t => {
     t.test('should indicate non-existing recipe', t => {
       request(app)
         .get(`${BASE_URL}/recipes/foo`)
+        .set(AUTH_HEADER_NAME, token)
         .expect('Content-Type', /json/)
         .expect(404)
         .end((err, res) => {
@@ -74,6 +115,7 @@ test('SVO Api', t => {
     t.test('find recipes by flat property', t => {
       request(app)
         .get(`${BASE_URL}/recipes/?category=dinner`)
+        .set(AUTH_HEADER_NAME, token)
         .expect('Content-Type', /json/)
         .expect(200)
         .end((err, res) => {
@@ -181,9 +223,13 @@ test('SVO Api', t => {
             .end((err, res) => {
               t.error(err, 'No Error')
               t.end()
-              after()
             })
         })
     })
+  })
+
+  t.test('After', t => {
+    after()
+    t.end()
   })
 })
