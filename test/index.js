@@ -19,15 +19,28 @@ const after = () => {
 }
 
 test('SVO Api', t => {
-  t.test('should indicate unknown routes', t => {
-    request(app)
-      .get('/non-existing')
-      .expect('Content-Type', /json/)
-      .expect(404)
-      .end((err, res) => {
-        t.error(err, 'No error')
-        t.end()
-      })
+  t.test('General', t => {
+    t.test('should indicate unknown routes', t => {
+      request(app)
+        .get('/non-existing')
+        .expect('Content-Type', /json/)
+        .expect(404)
+        .end((err, res) => {
+          t.error(err, 'No error')
+          t.end()
+        })
+    })
+
+    t.test('should return "method not allowed" for patch requests', t => {
+      request(app)
+        .patch(`${BASE_URL}/recipe/foo`)
+        .expect('Content-Type', /json/)
+        .expect(405)
+        .end((err, res) => {
+          t.error(err, 'No error')
+          t.end()
+        })
+    })
   })
 
   t.test('GET', t => {
