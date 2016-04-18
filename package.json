@@ -23,6 +23,7 @@
     "body-parser": "^1.15.0",
     "compression": "^1.6.1",
     "feathers": "^2.0.0",
+    "feathers-authentication": "^0.7.4",
     "feathers-configuration": "^0.2.2",
     "feathers-hooks": "^1.1.0",
     "feathers-mongoose": "^3.3.0",
