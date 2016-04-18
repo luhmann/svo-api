@@ -141,8 +141,31 @@ test('SVO Api', t => {
             t.ok(res.body.modified >= Date.now() - 1000, 'Modified field was automatically updated with current datetime')
             t.ok(res.body.published === 819170640000, 'Published field has been left untouched')
             t.end()
-            after()
           })
       })
+  })
+
+  t.test('DELETE', t => {
+    dropTestDb(t)
+    t.test('should delete a single recipe', t => {
+      let id
+      request(app)
+        .post(`${BASE_URL}/recipe`)
+        .send(goulash)
+        .end((err, res) => {
+          t.error(err, 'No error')
+          id = res.body._id
+
+          request(app)
+            .delete(`${BASE_URL}/recipe/${id}`)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end((err, res) => {
+              t.error(err, 'No Error')
+              t.end()
+              after()
+            })
+        })
+    })
   })
 })
