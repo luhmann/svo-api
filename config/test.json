@@ -1,0 +1,11 @@
+{
+  "host": "localhost",
+  "port": 3030,
+  "mongodb": "mongodb://127.0.0.1:27017/svo-test",
+  "auth": {
+    "token": {
+      "secret": "EGnn73RhFrFqRrbJmsCotZP6I8p/2F8YSbWh3W4P8W92RRJofexTQeV9L/ofMlDMTcc/Z//hyhWhiyVUMxyFhA=="
+    },
+    "local": {}
+  }
+}

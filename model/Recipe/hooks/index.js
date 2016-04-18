@@ -1,4 +1,5 @@
-import { dateToEpoch, dateFromEpoch } from '../lib/transformer.js'
+// @flow
+import { dateToEpoch, dateFromEpoch } from '../../../lib/transformer.js'
 import errors from 'feathers-errors'
 import uniqueSlug from 'unique-slug'
 import isArray from 'lodash/isArray'
