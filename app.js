@@ -9,8 +9,8 @@ import rest from 'feathers-rest'
 
 import { BASE_URL, DB_URL } from './config/constants.js'
 import Recipe from './model/RecipeModel.js'
-import { convertDates, getBySlug, validateSlug } from './config/hooks.js'
-import errorHandler from 'feathers-errors/handler.js'
+import * as customHooks from './config/hooks.js'
+import middleware from './middleware'
 
 const app = feathers()
 
@@ -43,17 +43,19 @@ app.use(`${BASE_URL}/recipe`, mongooseService({
   Model: Recipe
 }))
 
-// setup error handler
-app.use(errorHandler())
+// configure middleware
+app.configure(middleware)
 
 app
   .service(`${BASE_URL}/recipe`)
   .before({
-    create: [ validateSlug ],
-    get: [ getBySlug ]
+    create: [ customHooks.convertDatesFromEpoch, customHooks.validateSlug ],
+    get: [ customHooks.getBySlug ],
+    update: [ customHooks.convertDatesFromEpoch, customHooks.updateModified ],
+    patch: hooks.disable()
   })
   .after({
-    all: [ mongooseService.hooks.toObject({}), convertDates ],
+    all: [ mongooseService.hooks.toObject({}), customHooks.convertDatesToEpoch ],
     get: [ hooks.remove('_id') ]
   })
 
