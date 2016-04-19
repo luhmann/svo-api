@@ -71,6 +71,7 @@ test('SVO Api', t => {
     t.test('should return "method not allowed" for patch requests', t => {
       request(app)
         .patch(`${BASE_URL}/recipes/foo`)
+        .set(AUTH_HEADER_NAME, token)
         .expect('Content-Type', /json/)
         .expect(405)
         .end((err, res) => {
@@ -83,7 +84,16 @@ test('SVO Api', t => {
   t.test('GET', t => {
     before(t)
 
-    // TODO: test unauthenticated
+    t.test('should reject unauthorized requests', t => {
+      request(app)
+        .get(`${BASE_URL}/recipes/hungarian-goulash`)
+        .expect('Content-Type', /json/)
+        .expect(401)
+        .end((err, res) => {
+          t.error(err, 'No error')
+          t.end()
+        })
+    })
 
     t.test('should retrieve single recipe by slug', t => {
       request(app)
@@ -136,6 +146,7 @@ test('SVO Api', t => {
 
       request(app)
         .post(`${BASE_URL}/recipes`)
+        .set(AUTH_HEADER_NAME, token)
         .send(goulash)
         .expect('Content-Type', /json/)
         .expect(201)
@@ -154,6 +165,7 @@ test('SVO Api', t => {
     t.test('should fail creating recipe with an existing slug', t => {
       request(app)
         .post(`${BASE_URL}/recipes`)
+        .set(AUTH_HEADER_NAME, token)
         .send(goulash)
         .expect('Content-Type', /json/)
         .expect(409)
@@ -180,6 +192,7 @@ test('SVO Api', t => {
 
     request(app)
       .post(`${BASE_URL}/recipes`)
+      .set(AUTH_HEADER_NAME, token)
       .send(goulash)
       .end((err, res) => {
         t.error(err, 'No error')
@@ -190,6 +203,7 @@ test('SVO Api', t => {
 
         request(app)
           .put(`${BASE_URL}/recipes/${id}`)
+          .set(AUTH_HEADER_NAME, token)
           .send(goulashClone)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -211,6 +225,7 @@ test('SVO Api', t => {
       let id
       request(app)
         .post(`${BASE_URL}/recipes`)
+        .set(AUTH_HEADER_NAME, token)
         .send(goulash)
         .end((err, res) => {
           t.error(err, 'No error')
@@ -218,6 +233,7 @@ test('SVO Api', t => {
 
           request(app)
             .delete(`${BASE_URL}/recipes/${id}`)
+            .set(AUTH_HEADER_NAME, token)
             .expect('Content-Type', /json/)
             .expect(200)
             .end((err, res) => {

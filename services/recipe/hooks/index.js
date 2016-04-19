@@ -86,11 +86,17 @@ function removePermanentFields (hook) {
 }
 
 export const before = {
-  create: [ validateSlug, convertDatesFromEpoch, removePermanentFields ],
-  get: [
+  all: [
     auth.verifyToken(),
     auth.populateUser(),
-    auth.restrictToAuthenticated(),
+    auth.restrictToAuthenticated()
+  ],
+  create: [
+    validateSlug,
+    convertDatesFromEpoch,
+    removePermanentFields
+  ],
+  get: [
     getBySlug
   ],
   update: [ convertDatesFromEpoch, updateModified ],
