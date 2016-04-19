@@ -13,7 +13,7 @@ import userMock from './fixtures/user.json'
 let token
 let server
 
-const AUTH_HEADER_NAME = 'authorization'
+const AUTH_HEADER_NAME = 'x-authorization'
 
 const before = (t) => {
   dropTestDb(t)
