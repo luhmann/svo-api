@@ -53,7 +53,7 @@ test('SVO Api', t => {
             t.end()
           } else {
             request(app)
-              .post('/auth/local')
+              .post(`${BASE_URL}/auth/local`)
               .send(pick(userMock, 'email', 'password'))
               .end((err, res) => {
                 if (err) {
@@ -81,7 +81,7 @@ test('SVO Api', t => {
           t.end()
         } else {
           request(app)
-            .post('/auth/local')
+            .post(`${BASE_URL}/auth/local`)
             .send(pick(adminMock, 'email', 'password'))
             .end((err, res) => {
               if (err) {
