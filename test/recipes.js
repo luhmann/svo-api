@@ -4,13 +4,22 @@ import request from 'supertest'
 import test from 'tape'
 import isArray from 'lodash/isArray'
 import cloneDeep from 'lodash/cloneDeep'
+import pick from 'lodash/pick'
 
-import { BASE_URL } from '../config/constants.js'
-import { dropTestDb, loadFixtures, deleteTestUser } from './setup.js'
-import goulash from './fixtures/goulash.json'
-import userMock from './fixtures/user.json'
+import {
+  BASE_URL
+} from '../config/constants.js'
+import {
+  dropTestDb,
+  loadFixtures,
+  deleteTestUser
+} from './setup.js'
+import goulash from './fixtures/recipe/goulash.json'
+import userMock from './fixtures/user/user.json'
+import adminMock from './fixtures/user/admin.json'
 
-let token
+let userToken
+let adminToken
 let server
 
 const AUTH_HEADER_NAME = 'x-authorization'
@@ -26,10 +35,14 @@ const after = () => {
 }
 
 test('SVO Api', t => {
-  t.test('Before', t => {
+  // TODO: get rid of this callback-hell willya?
+  t.test('Before: Create user with "read"-role', t => {
+    // Bootstrap the real app
     server = app.listen(3030, () => {
       deleteTestUser(t)
       before(t)
+
+      // Get a token with read privileges
       request(app)
         .post(`${BASE_URL}/users`)
         .send(userMock)
@@ -41,19 +54,46 @@ test('SVO Api', t => {
           } else {
             request(app)
               .post('/auth/local')
-              .send(userMock)
+              .send(pick(userMock, 'email', 'password'))
               .end((err, res) => {
                 if (err) {
-                  t.fail('token could not be received', err)
+                  t.fail('userToken could not be received', err)
                 } else {
-                  token = res.body.token
-                  t.comment(`Received token ${token}`)
+                  userToken = res.body.token
+                  t.comment(`Received userToken ${userToken}`)
+                  t.end()
                 }
-                t.end()
               })
           }
         })
     })
+  })
+
+  t.test('Before: Create user with "write"-role', t => {
+    // Get a token with write privileges
+    request(app)
+      .post(`${BASE_URL}/users`)
+      .send(adminMock)
+      .expect(201)
+      .end((err, res) => {
+        if (err) {
+          t.fail('Admin could not be generated', err)
+          t.end()
+        } else {
+          request(app)
+            .post('/auth/local')
+            .send(pick(adminMock, 'email', 'password'))
+            .end((err, res) => {
+              if (err) {
+                t.fail('adminToken could not be received', err)
+              } else {
+                adminToken = res.body.token
+                t.comment(`Received adminToken ${adminToken}`)
+                t.end()
+              }
+            })
+        }
+      })
   })
 
   t.test('General', t => {
@@ -71,7 +111,7 @@ test('SVO Api', t => {
     t.test('should return "method not allowed" for patch requests', t => {
       request(app)
         .patch(`${BASE_URL}/recipes/foo`)
-        .set(AUTH_HEADER_NAME, token)
+        .set(AUTH_HEADER_NAME, userToken)
         .expect('Content-Type', /json/)
         .expect(405)
         .end((err, res) => {
@@ -81,10 +121,10 @@ test('SVO Api', t => {
     })
   })
 
-  t.test('GET', t => {
+  t.test('Authentication & Authorization', t => {
     before(t)
 
-    t.test('should reject unauthorized requests', t => {
+    t.test('should reject requests with missing authorization token', t => {
       request(app)
         .get(`${BASE_URL}/recipes/hungarian-goulash`)
         .expect('Content-Type', /json/)
@@ -95,10 +135,17 @@ test('SVO Api', t => {
         })
     })
 
+    // TODO: test with expired authorization userToken
+    // TODO: test with insufficient permission
+  })
+
+  t.test('GET', t => {
+    before(t)
+
     t.test('should retrieve single recipe by slug', t => {
       request(app)
         .get(`${BASE_URL}/recipes/hungarian-goulash`)
-        .set(AUTH_HEADER_NAME, token)
+        .set(AUTH_HEADER_NAME, userToken)
         .expect('Content-Type', /json/)
         .expect(200)
         .end((err, res) => {
@@ -112,7 +159,7 @@ test('SVO Api', t => {
     t.test('should indicate non-existing recipe', t => {
       request(app)
         .get(`${BASE_URL}/recipes/foo`)
-        .set(AUTH_HEADER_NAME, token)
+        .set(AUTH_HEADER_NAME, userToken)
         .expect('Content-Type', /json/)
         .expect(404)
         .end((err, res) => {
@@ -125,7 +172,7 @@ test('SVO Api', t => {
     t.test('find recipes by flat property', t => {
       request(app)
         .get(`${BASE_URL}/recipes/?category=dinner`)
-        .set(AUTH_HEADER_NAME, token)
+        .set(AUTH_HEADER_NAME, userToken)
         .expect('Content-Type', /json/)
         .expect(200)
         .end((err, res) => {
@@ -146,7 +193,7 @@ test('SVO Api', t => {
 
       request(app)
         .post(`${BASE_URL}/recipes`)
-        .set(AUTH_HEADER_NAME, token)
+        .set(AUTH_HEADER_NAME, adminToken)
         .send(goulash)
         .expect('Content-Type', /json/)
         .expect(201)
@@ -165,7 +212,7 @@ test('SVO Api', t => {
     t.test('should fail creating recipe with an existing slug', t => {
       request(app)
         .post(`${BASE_URL}/recipes`)
-        .set(AUTH_HEADER_NAME, token)
+        .set(AUTH_HEADER_NAME, adminToken)
         .send(goulash)
         .expect('Content-Type', /json/)
         .expect(409)
@@ -176,56 +223,113 @@ test('SVO Api', t => {
           t.end()
         })
     })
+
+    t.test('should fail creating recipe when authentication token has insufficient permissions "403"', t => {
+      request(app)
+        .post(`${BASE_URL}/recipes`)
+        .set(AUTH_HEADER_NAME, userToken)
+        .send(goulash)
+        .expect('Content-Type', /json/)
+        .expect(403)
+        .end((err, res) => {
+          t.error(err, 'No error')
+          t.end()
+        })
+    })
+
+    t.test('should fail creating recipe when authentication token is missing "401"', t => {
+      request(app)
+        .post(`${BASE_URL}/recipes`)
+        .send(goulash)
+        .expect('Content-Type', /json/)
+        .expect(401)
+        .end((err, res) => {
+          t.error(err, 'No error')
+          t.end()
+        })
+    })
+
+    // TODO: tests for mongoose data validation
   })
 
   t.test('PUT', t => {
     let id
-    let created
-    let newTitle = 'Foo Bar'
 
-    dropTestDb(t)
+    t.test('modify a simple recipe with 200', t => {
+      let created
+      let newTitle = 'Foo Bar'
 
-    // set modified and published to old dats
-    goulash.created = new Date('1995-12-17T03:24:00')
-    goulash.published = new Date('1995-12-17T03:24:00')
-    goulash.modified = new Date('1995-12-17T03:24:00')
+      dropTestDb(t)
 
-    request(app)
-      .post(`${BASE_URL}/recipes`)
-      .set(AUTH_HEADER_NAME, token)
-      .send(goulash)
-      .end((err, res) => {
-        t.error(err, 'No error')
-        id = res.body._id
-        created = res.body.created
-        let goulashClone = cloneDeep(res.body)
-        goulashClone.title = newTitle
+      goulash.created = new Date('1995-12-17T03:24:00')
+      goulash.published = new Date('1995-12-17T03:24:00')
+      goulash.modified = new Date('1995-12-17T03:24:00')
 
-        request(app)
-          .put(`${BASE_URL}/recipes/${id}`)
-          .set(AUTH_HEADER_NAME, token)
-          .send(goulashClone)
-          .expect('Content-Type', /json/)
-          .expect(200)
-          .end((err, res) => {
-            t.error(err, 'No Error')
-            t.ok(res.body.title === newTitle, 'Title successfully modified')
-            t.ok(res.body.category === goulash.category, 'Category has not been modified')
-            t.ok(res.body.created === created, 'Created field has been left untouched')
-            t.ok(res.body.modified >= Date.now() - 1000, 'Modified field was automatically updated with current datetime')
-            t.ok(res.body.published === 819170640000, 'Published field has been left untouched')
-            t.end()
-          })
-      })
+      request(app)
+        .post(`${BASE_URL}/recipes`)
+        .set(AUTH_HEADER_NAME, adminToken)
+        .send(goulash)
+        .end((err, res) => {
+          t.error(err, 'No error')
+          id = res.body._id
+          created = res.body.created
+          let goulashClone = cloneDeep(res.body)
+          goulashClone.title = newTitle
+
+          request(app)
+            .put(`${BASE_URL}/recipes/${id}`)
+            .set(AUTH_HEADER_NAME, adminToken)
+            .send(goulashClone)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end((err, res) => {
+              t.error(err, 'No Error')
+              t.ok(res.body.title === newTitle, 'Title successfully modified')
+              t.ok(res.body.category === goulash.category, 'Category has not been modified')
+              t.ok(res.body.created === created, 'Created field has been left untouched')
+              t.ok(res.body.modified >= Date.now() - 1000, 'Modified field was automatically updated with current datetime')
+              t.ok(res.body.published === 819170640000, 'Published field has been left untouched')
+              t.end()
+            })
+        })
+    })
+
+    t.test('should fail to modify a recipe when a token with insufficient permissions is passed with "403"', t => {
+      request(app)
+        .put(`${BASE_URL}/recipes/${id}`)
+        .set(AUTH_HEADER_NAME, userToken)
+        .send(goulash)
+        .expect('Content-Type', /json/)
+        .expect(403)
+        .end((err, res) => {
+          t.error(err, 'No Error')
+          t.end()
+        })
+    })
+
+    t.test('should fail to modify a recipe when no authentication token is passed with "401"', t => {
+      request(app)
+        .put(`${BASE_URL}/recipes/${id}`)
+        .send(goulash)
+        .expect('Content-Type', /json/)
+        .expect(401)
+        .end((err, res) => {
+          t.error(err, 'No Error')
+          t.end()
+        })
+    })
+
+      // TODO: Test put for non-existing recipe
   })
 
   t.test('DELETE', t => {
     dropTestDb(t)
-    t.test('should delete a single recipe', t => {
+
+    t.test('should fail with "401" when no user token is supplied', t => {
       let id
       request(app)
         .post(`${BASE_URL}/recipes`)
-        .set(AUTH_HEADER_NAME, token)
+        .set(AUTH_HEADER_NAME, adminToken)
         .send(goulash)
         .end((err, res) => {
           t.error(err, 'No error')
@@ -233,7 +337,52 @@ test('SVO Api', t => {
 
           request(app)
             .delete(`${BASE_URL}/recipes/${id}`)
-            .set(AUTH_HEADER_NAME, token)
+            .expect('Content-Type', /json/)
+            .expect(401)
+            .end((err, res) => {
+              t.error(err, 'No Error')
+              dropTestDb(t)
+              t.end()
+            })
+        })
+    })
+
+    t.test('should fail with "403" when token has insufficient permissions', t => {
+      let id
+      request(app)
+        .post(`${BASE_URL}/recipes`)
+        .set(AUTH_HEADER_NAME, adminToken)
+        .send(goulash)
+        .end((err, res) => {
+          t.error(err, 'No error')
+          id = res.body._id
+
+          request(app)
+            .delete(`${BASE_URL}/recipes/${id}`)
+            .set(AUTH_HEADER_NAME, userToken)
+            .expect('Content-Type', /json/)
+            .expect(403)
+            .end((err, res) => {
+              t.error(err, 'No Error')
+              dropTestDb(t)
+              t.end()
+            })
+        })
+    })
+
+    t.test('should delete a single recipe with "200"', t => {
+      let id
+      request(app)
+        .post(`${BASE_URL}/recipes`)
+        .set(AUTH_HEADER_NAME, adminToken)
+        .send(goulash)
+        .end((err, res) => {
+          t.error(err, 'No error')
+          id = res.body._id
+
+          request(app)
+            .delete(`${BASE_URL}/recipes/${id}`)
+            .set(AUTH_HEADER_NAME, adminToken)
             .expect('Content-Type', /json/)
             .expect(200)
             .end((err, res) => {
@@ -242,6 +391,8 @@ test('SVO Api', t => {
             })
         })
     })
+
+    // TODO: test delete for non existing recipe
   })
 
   t.test('After', t => {

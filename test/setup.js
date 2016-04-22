@@ -1,8 +1,7 @@
 // @flow
 import Recipe from '../services/recipe/model'
 import User from '../services/user/model'
-import goulashFixture from './fixtures/goulash.json'
-import userFixture from './fixtures/user.json'
+import goulashFixture from './fixtures/recipe/goulash.json'
 
 export const dropTestDb = (t) => {
   Recipe.remove((err, p) => {

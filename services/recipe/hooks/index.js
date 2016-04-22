@@ -92,6 +92,7 @@ export const before = {
     auth.restrictToAuthenticated()
   ],
   create: [
+    auth.restrictToRoles({ roles: [ 'write' ] }),
     validateSlug,
     convertDatesFromEpoch,
     removePermanentFields
@@ -99,7 +100,14 @@ export const before = {
   get: [
     getBySlug
   ],
-  update: [ convertDatesFromEpoch, updateModified ],
+  update: [
+    auth.restrictToRoles({ roles: [ 'write' ] }),
+    convertDatesFromEpoch,
+    updateModified
+  ],
+  remove: [
+    auth.restrictToRoles({ roles: [ 'write' ] })
+  ],
   patch: hooks.disable()
 }
 
