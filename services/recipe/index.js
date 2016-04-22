@@ -2,7 +2,7 @@
 'use strict'
 
 import service from 'feathers-mongoose'
-import recipe from './model'
+import recipe from './schemas/recipe'
 import * as hooks from './hooks'
 import { BASE_URL } from '../../config/constants'
 
@@ -23,11 +23,11 @@ export default function () {
   app.use(SERVICE_URL, service(options))
 
   // Get our initialize service to that we can bind hooks
-  const userService = app.service(SERVICE_URL)
+  const recipeService = app.service(SERVICE_URL)
 
   // Set up our before hooks
-  userService.before(hooks.before)
+  recipeService.before(hooks.before)
 
   // Set up our after hooks
-  userService.after(hooks.after)
+  recipeService.after(hooks.after)
 }

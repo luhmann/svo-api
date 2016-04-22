@@ -1,5 +1,5 @@
 // @flow
-import Recipe from '../services/recipe/model'
+import Recipe from '../services/recipe/schemas/recipe'
 import User from '../services/user/model'
 import goulashFixture from './fixtures/recipe/goulash.json'
 

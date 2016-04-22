@@ -6,6 +6,7 @@ import isArray from 'lodash/isArray'
 import hooks from 'feathers-hooks'
 import mongooseService from 'feathers-mongoose'
 import authentication from 'feathers-authentication'
+import { BASE_URL } from '../../../config/constants'
 
 const auth = authentication.hooks
 
@@ -113,5 +114,5 @@ export const before = {
 
 export const after = {
   all: [ mongooseService.hooks.toObject({}), convertDatesToEpoch ],
-  get: [ hooks.remove('_id') ]
+  get: [ hooks.remove('_id'), hooks.populate('author', { service: `${BASE_URL}/users`, field: 'author' }) ]
 }

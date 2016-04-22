@@ -1,4 +1,10 @@
 import mongoose from 'mongoose'
+import durationSchema from './duration'
+import imageSchema from './image'
+import ingredientSchema from './ingredient'
+import stepSchema from './preparationStep'
+import quickinfoSchema from './quickinfo'
+
 const Schema = mongoose.Schema
 
 const RecipeSchema = new Schema({
@@ -10,20 +16,20 @@ const RecipeSchema = new Schema({
   modified: { type: Date, default: Date.now },
   published: { type: Date, default: Date.now },
   category: { type: String, required: true },
-  author: Schema.Types.Mixed,
-  duration: Schema.Types.Mixed,
+  author: Schema.Types.ObjectId,
+  duration: durationSchema,
   servings: Number,
   calories: Number,
   protein: Number,
   fat: Number,
   carbs: Number,
   difficulty: Number,
-  images: [ Schema.Types.Mixed ],
-  cover: [ Schema.Types.Mixed ],
-  ingredients: { type: [ Schema.Types.Mixed ], required: true },
-  preparation: { type: [ Schema.Types.Mixed ], required: true },
-  quickinfo: Schema.Types.Mixed,
-  utensils: [],
+  images: [ imageSchema ],
+  cover: imageSchema,
+  ingredients: { type: [ ingredientSchema ], required: true },
+  preparation: { type: [ stepSchema ], required: true },
+  quickinfo: quickinfoSchema,
+  utensils: [ String ],
   wine: String,
   dessert: String
 })

@@ -4,10 +4,7 @@
   "subtitle": "Ein leckerer Klassiker für die Massen, der Jung und Alt begeistert",
   "hash": "3460f804",
   "category": "dinner",
-  "author": {
-    "name": "Peter Pan",
-    "image": null
-  },
+  "author": "571a233416013d90c38c6ca5",
   "duration": {
     "preparation": 2400,
     "cooking": 1200,
@@ -20,16 +17,12 @@
   "carbs": 6,
   "difficulty": 2,
   "images": [{
-    "src": "_MG_0551.jpg",
-    "credits": "Jan Florian Dietrich",
-    "width": 1024,
-    "height": 683
+    "objectId": "yx4clg9wijldohwkkaxv",
+    "credits": "Jan Florian Dietrich"
   }],
   "cover": {
-    "src": "_MG_0559.jpg",
-    "credits": "Jan Florian Dietrich",
-    "width": 1024,
-    "height": 683
+    "objectId": "z6ng1sdapy002tktolfw",
+    "credits": "Jan Florian Dietrich"
   },
   "ingredients": [{
     "amount": 1,
@@ -97,7 +90,7 @@
       "Schneidebrett"
     ],
     "images": [{
-      "src": "_IMG_0574.jpg"
+      "objectId": "yx4clg9wijldohwkkaxv"
     }]
   }, {
     "step": 2,

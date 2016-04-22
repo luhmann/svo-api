@@ -15,8 +15,7 @@ export const before = {
   get: [
     auth.verifyToken(),
     auth.populateUser(),
-    auth.restrictToAuthenticated(),
-    // auth.restrictToOwner({ ownerField: '_id' })
+    auth.restrictToAuthenticated()
   ],
   create: [
     auth.hashPassword()
@@ -42,7 +41,7 @@ export const before = {
 }
 
 export const after = {
-  all: [ hooks.remove('password') ],
+  all: [ hooks.remove('password'), hooks.remove('roles'), hooks.remove('_id') ],
   find: [],
   get: [],
   create: [],
