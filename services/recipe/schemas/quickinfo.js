@@ -3,7 +3,8 @@ const Schema = mongoose.Schema
 
 export default new Schema({
   skinny: Boolean,
-  glutenFree: Boolean,
+  // glutenFree: Boolean,
   restTime: Boolean,
-  vegetarian: Boolean
+  vegetarian: Boolean,
+  quick: Boolean
 })
