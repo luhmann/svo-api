@@ -1,9 +1,11 @@
 import mongoose from 'mongoose'
+import dessertSchema from './dessert'
 import durationSchema from './duration'
 import imageSchema from './image'
 import ingredientSchema from './ingredient'
 import stepSchema from './preparationStep'
 import quickinfoSchema from './quickinfo'
+import wineSchema from './wine'
 
 const Schema = mongoose.Schema
 
@@ -30,8 +32,8 @@ const RecipeSchema = new Schema({
   preparation: { type: [ stepSchema ], required: true },
   quickinfo: quickinfoSchema,
   utensils: [ String ],
-  wine: String,
-  dessert: String
+  wine: wineSchema,
+  dessert: dessertSchema
 })
 
 export default mongoose.model('recipes', RecipeSchema)
